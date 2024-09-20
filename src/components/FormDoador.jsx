@@ -38,9 +38,20 @@ function FormDoador() {
 
     // Estado para armazenar os valores dos inputs
     const [formValues, setFormValues] = useState({
-        nome: '',
-        telefone: '',
-        email: ''
+        name: '',
+        last_name: '',
+        email: '',
+        phone:'',
+        motivation:'',
+        address: {
+            cep: '',
+            estado: '',
+            cidade: '',
+            bairro: '',
+            rua: '',
+            numero: ''
+          },
+
     });
 
     const [todosDados, setTodosDados] = useState([])
@@ -51,43 +62,26 @@ function FormDoador() {
 
 
     // Função para atualizar os valores conforme o usuário digita
-    const handleChange = (e, { name, value }) => {
-        setFormValues(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
-
-        setErros(prevState => {
-            const newErros = { ...prevState };
-            switch (name) {
-                case "nome":
-                    if (value.length > 60) {
-                        newErros.nome = "Nome deve ter no máximo 60 caracteres";
-                    } else {
-                        newErros.nome = "";
-                    }
-                    break;
-                case "telefone":
-                    if (value.length > 15) {
-                        newErros.telefone = "Telefone deve ter 15 caracteres";
-                    } else {
-                        newErros.telefone = "";
-                    }
-                    break;
-                case "email":
-                    if (value.length > 29) {
-                        newErros.email = "E-mail máximo 30 caracteres";
-                    } else {
-                        newErros.email = "";
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            return newErros;
-        });
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+    
+        if (name.startsWith('address.')) {
+            const field = name.split('.')[1];
+            setFormValues((prevState) => ({
+                ...prevState,
+                address: {
+                    ...prevState.address,
+                    [field]: value
+                }
+            }));
+        } else {
+            setFormValues({
+                ...formValues,
+                [name]: value
+            });
+        }
     };
+    
 
 
 
@@ -111,12 +105,49 @@ function FormDoador() {
         setStepVerification(true);
     }
 
-    function enviarFormulario() {
-        console.log("Dados do formulário:", formValues); // Mostra os dados do formulário antes de atualizar
+    async function enviarFormulario() {
+        console.log("Dados do formulário:", formValues);
 
-        setTodosDados(prevTodosDados => [...prevTodosDados, formValues]); // Adiciona os novos dados ao array existente
+        setTodosDados(prevTodosDados => [...prevTodosDados, formValues]);
+
+        try {
+            // Envia os dados para o backend via POST
+            const response = await fetch('http://localhost:5000/person/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formValues), // Converte o objeto formValues para JSON
+                
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao enviar dados para o servidor');
+            }
+
+            const data = await response.json();
+            console.log('Resposta do servidor:', data);
+
+            // Caso você queira limpar o formulário após o envio
+            setFormValues({
+                name: '',
+                last_name: '',
+                email: '',
+                phone: '',
+                motivation: '',
+                address: {
+                    cep: '',
+                    estado: '',
+                    cidade: '',
+                    bairro: '',
+                    rua: '',
+                    numero: ''
+                }
+            });
+        } catch (error) {
+            console.error('Erro ao enviar os dados:', error);
+        }
     }
-
     const isMobile = useMediaQuery({ maxWidth: 767 });
 
     return (
@@ -176,13 +207,24 @@ function FormDoador() {
                                     {/* Inputs dinâmicos de cada etapa */}
                                     <FormInput
                                         fluid
-                                        error={!!erros.nome && { content: erros.nome }}
+                                        error={!!erros.name && { content: erros.name }}
                                         label={<label className="blue-label">Nome</label>}
                                         placeholder="Digite seu nome"
-                                        name="nome"
+                                        name="name"
                                         type="text"
                                         maxLength={61}
-                                        value={formValues.nome}
+                                        value={formValues.name}
+                                        onChange={handleChange}
+                                    />
+                                    <FormInput
+                                        fluid
+                                        error={!!erros.nome && { content: erros.nome }}
+                                        label={<label className="blue-label">Sobrenome</label>}
+                                        placeholder="Digite seu sobrenome"
+                                        name="last_name"
+                                        type="text"
+                                        maxLength={61}
+                                        value={formValues.last_name}
                                         onChange={handleChange}
                                     />
                                     <FormInput
@@ -192,9 +234,9 @@ function FormDoador() {
                                         error={!!erros.telefone && { content: erros.telefone }}
                                         label={<label className="blue-label">Telefone</label>}
                                         placeholder="Digite seu telefone"
-                                        name="telefone"
+                                        name="phone"
                                         maxLength={16}
-                                        value={formValues.telefone}
+                                        value={formValues.phone}
                                         onChange={handleChange}
                                     />
                                     <FormInput
@@ -207,6 +249,18 @@ function FormDoador() {
                                         name="email"
                                         maxLength={30}
                                         value={formValues.email}
+                                        onChange={handleChange}
+                                    />
+                                    <FormInput
+                                        icon='mail'
+                                        iconPosition='left'
+                                        fluid
+                                        error={!!erros.email && { content: erros.email }}
+                                        label={<label className="blue-label">Motivação</label>}
+                                        placeholder="Digite seu e-mail"
+                                        name="motivation"
+                                        maxLength={30}
+                                        value={formValues.motivation}
                                         onChange={handleChange}
                                     />
                                 </div>
@@ -274,96 +328,76 @@ function FormDoador() {
                                 <div className="form-inputs">
                                     {/* Inputs dinâmicos de cada etapa */}
                                     <FormInput
-                                        fluid
-                                        error={!!erros.cep && { content: erros.cep }}
-                                        label={<label className="blue-label">CEP</label>}
-                                        placeholder="Digite seu cep"
-                                        name="cep"
-                                        type="text"
-                                        maxLength={20}
-                                        value={formValues.nome}
-                                        onChange={handleChange}
-                                    />
-                                    <FormGroup widths='equal'>
-                                        <FormInput
-                                            fluid
-                                            error={!!erros.rua && { content: erros.rua }}
-                                            label={<label className="blue-label">Rua</label>}
-                                            placeholder="Digite seu rua"
-                                            name="rua"
-                                            type="text"
-                                            maxLength={20}
-                                            value={formValues.nome}
-                                            onChange={handleChange}
-                                        />
-                                        <FormInput
-                                            fluid
-                                            error={!!erros.bairro && { content: erros.bairro }}
-                                            label={<label className="blue-label">Bairro</label>}
-                                            placeholder="Digite seu bairro"
-                                            name="bairro"
-                                            type="text"
-                                            maxLength={20}
-                                            value={formValues.nome}
-                                            onChange={handleChange}
-                                        />
-                                        <FormInput
-                                            fluid
-                                            error={!!erros.logradouro && { content: erros.logradouro }}
-                                            label={<label className="blue-label">Logradouro</label>}
-                                            placeholder="Digite seu logradouro"
-                                            name="logradouro"
-                                            type="text"
-                                            maxLength={20}
-                                            value={formValues.nome}
-                                            onChange={handleChange}
-                                        />
+                fluid
+                error={!!erros.cep && { content: erros.cep }}
+                label={<label className="blue-label">CEP</label>}
+                placeholder="Digite seu CEP"
+                name="address.cep"
+                type="text"
+                maxLength={20}
+                value={formValues.address.cep}
+                onChange={handleChange}
+            />
+            <FormGroup widths='equal'>
+                <FormInput
+                    fluid
+                    error={!!erros.estado && { content: erros.estado }}
+                    label={<label className="blue-label">Estado</label>}
+                    placeholder="Digite seu estado"
+                    name="address.estado"
+                    type="text"
+                    maxLength={20}
+                    value={formValues.address.estado}
+                    onChange={handleChange}
+                />
+                <FormInput
+                    fluid
+                    error={!!erros.cidade && { content: erros.cidade }}
+                    label={<label className="blue-label">Cidade</label>}
+                    placeholder="Digite sua cidade"
+                    name="address.cidade"
+                    type="text"
+                    maxLength={20}
+                    value={formValues.address.cidade}
+                    onChange={handleChange}
+                />
+                <FormInput
+                    fluid
+                    error={!!erros.bairro && { content: erros.bairro }}
+                    label={<label className="blue-label">Bairro</label>}
+                    placeholder="Digite seu bairro"
+                    name="address.bairro"
+                    type="text"
+                    maxLength={20}
+                    value={formValues.address.bairro}
+                    onChange={handleChange}
+                />
+            </FormGroup>
+            <FormGroup widths='equal'>
+                <FormInput
+                    fluid
+                    error={!!erros.rua && { content: erros.rua }}
+                    label={<label className="blue-label">Rua</label>}
+                    placeholder="Digite sua rua"
+                    name="address.rua"
+                    type="text"
+                    maxLength={20}
+                    value={formValues.address.rua}
+                    onChange={handleChange}
+                />
+                <FormInput
+                    fluid
+                    error={!!erros.numero && { content: erros.numero }}
+                    label={<label className="blue-label">Número</label>}
+                    placeholder="Digite o número"
+                    name="address.numero"
+                    type="text"
+                    maxLength={20}
+                    value={formValues.address.numero}
+                    onChange={handleChange}
+                />
 
                                     </FormGroup>
-                                    <FormGroup widths='equal'>
-                                        <FormInput
-                                            fluid
-                                            error={!!erros.numero && { content: erros.numero }}
-                                            label={<label className="blue-label">numero</label>}
-                                            placeholder="Digite seu numero"
-                                            name="numero"
-                                            type="text"
-                                            maxLength={20}
-                                            value={formValues.numero}
-                                            onChange={handleChange}
-                                        />
-                                        <FormInput
-                                            fluid
-                                            error={!!erros.cidade && { content: erros.cidade }}
-                                            label={<label className="blue-label">Cidade</label>}
-                                            placeholder="Digite seu cidade"
-                                            name="cidade"
-                                            type="text"
-                                            maxLength={20}
-                                            value={formValues.cidade}
-                                            onChange={handleChange}
-                                        />
-                                        <FormInput
-                                            fluid
-                                            error={!!erros.estado && { content: erros.estado }}
-                                            label={<label className="blue-label">Estado</label>}
-                                            placeholder="Digite seu estado"
-                                            name="estado"
-                                            type="text"
-                                            maxLength={20}
-                                            value={formValues.estado}
-                                            onChange={handleChange}
-                                        />
-
-                                    </FormGroup>
-
-                                    <FormTextArea
-                                        error={!!erros.pontoReferencia && { content: erros.pontoReferencia }}
-                                        label={<label className="blue-label">Ponto de referência</label>}
-                                        placeholder='Descreva ponto de conferência  do seu endereço'
-                                        value={formValues.pontoReferencia}
-                                        onChange={handleChange}
-                                    />
                                 </div>
                             </Form>
                         </main>
@@ -438,7 +472,7 @@ function FormDoador() {
                                         value={formValues.codigoVerificacao}
                                         onChange={handleChange}
                                     />
-                                    <p>Enviar código</p>
+                                    <button type="submit" onClick={enviarFormulario} >Enviar codigo</button>
                                 </div>
                             </Form>
                         </main>
