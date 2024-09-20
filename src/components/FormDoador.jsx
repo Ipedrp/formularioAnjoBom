@@ -33,24 +33,28 @@ function FormDoador() {
     const [stepFormContact, setStepFormContact] = useState(true);
     const [stepFormAndress, setStepFormAndress] = useState(false);
     const [stepVerification, setStepVerification] = useState(false);
+    const [msgCodigo, setMsgCodigo] = useState(false);
 
-    const [erros, setErros] = useState({});
-
+    const [erros, setErros] = useState({
+        address: {} // Inicializamos com um objeto address vazio
+    });
     // Estado para armazenar os valores dos inputs
     const [formValues, setFormValues] = useState({
         name: '',
         last_name: '',
         email: '',
-        phone:'',
-        motivation:'',
+        phone: '',
+        motivation: '',
         address: {
             cep: '',
             estado: '',
             cidade: '',
             bairro: '',
+            logradouro: '',
             rua: '',
-            numero: ''
-          },
+            numero: '',
+            pontoReferencia: ''
+        },
 
     });
 
@@ -58,38 +62,79 @@ function FormDoador() {
 
     useEffect(() => {
         console.log("Aqui são os dados atualizados", todosDados);
-    }, [todosDados]); // Este useEffect é chamado sempre que todosDados muda
+    }, [todosDados]); // Chamado sempre que todosDados muda
 
 
     // Função para atualizar os valores conforme o usuário digita
     const handleChange = (e, { name, value }) => {
-        setFormValues(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+
+        console.log("Mudança detectada:", name, value);
+        console.log("Estado antes da atualização:", formValues);
+
+        if (name in formValues.address) {
+            setFormValues(prevState => {
+                console.log("Atualizando address", prevState.address);
+                return {
+                    ...prevState,
+                    address: {
+                        ...prevState.address,
+                        [name]: value
+                    }
+                };
+            });
+        } else {
+            setFormValues(prevState => ({
+                ...prevState,
+                [name]: value
+            }));
+        }
+
+        console.log("Estado após a atualização:", formValues);
+
 
         setErros(prevState => {
             const newErros = { ...prevState };
             switch (name) {
-                case "nome":
-                    if (value.length > 60) {
-                        newErros.nome = "Nome deve ter no máximo 60 caracteres";
+                case "name":
+                    if (value.length > 29) {
+                        newErros.name = "Máximo 30 caracteres";
                     } else {
-                        newErros.nome = "";
+                        newErros.name = "";
                     }
                     break;
-                case "telefone":
-                    if (value.length > 15) {
-                        newErros.telefone = "Telefone deve ter 15 caracteres";
+                case "last_name":
+                    if (value.length > 59) {
+                        newErros.last_name = "Máximo 60 caracteres";
                     } else {
-                        newErros.telefone = "";
+                        newErros.last_name = "";
+                    }
+                    break;
+                case "phone":
+                    if (value.length > 15) {
+                        newErros.phone = "Máximo 15 caracteres";
+                    } else {
+                        newErros.phone = "";
                     }
                     break;
                 case "email":
-                    if (value.length > 29) {
-                        newErros.email = "E-mail máximo 30 caracteres";
+                    if (value.length > 44) {
+                        newErros.email = "Máximo 45 caracteres";
                     } else {
                         newErros.email = "";
+                    }
+                    break;
+                case "motivation":
+                    if (value.length > 149) {
+                        newErros.motivation = "Máximo 150 caracteres";
+                    } else {
+                        newErros.motivation = "";
+                    }
+                    break;
+                case "cep":
+                    if (value.length > 9) {
+                        newErros.address.cep = "Máximo 9 caracteres";
+                    } else {
+                        newErros.address.cep = ""; // Limpa o erro se estiver válido
                     }
                     break;
                 default:
@@ -100,6 +145,15 @@ function FormDoador() {
         });
     };
 
+    const updateCep = (value) => {
+        setFormValues(prevState => ({
+            ...prevState,
+            address: {
+                ...prevState.address,
+                cep: value
+            }
+        }));
+    };
 
 
     function voltarParaContato() {
@@ -108,9 +162,43 @@ function FormDoador() {
     }
 
     function irParaEndereco() {
-        setStepFormContact(false);
-        setStepFormAndress(true);
+        let valid = true; // Inicializamos como verdadeiro e vamos alterar caso haja erros
+        let newErros = {};
+
+        // Verifica se o nome está vazio
+        if (!formValues.name) {
+            newErros.name = "Nome é obrigatório";
+            valid = false;
+        }
+        if (!formValues.last_name) {
+            newErros.last_name = "Sobrenome é obrigatório";
+            valid = false;
+        }
+        if (!formValues.phone) {
+            newErros.phone = "Telefone é obrigatório";
+            valid = false;
+        }
+        if (!formValues.email) {
+            newErros.email = "E-mail é obrigatório";
+            valid = false;
+        }
+        if (!formValues.motivation) {
+            newErros.motivation = "Motivação é obrigatório";
+            valid = false;
+        }
+        // Se válido, vai para o endereço
+        if (valid) {
+            setStepFormAndress(true);
+            setStepFormContact(false);
+        } else {
+            setStepFormContact(true); // Mantém na etapa de contato
+        }
+
+        // Atualiza os erros
+        setErros(newErros);
     }
+
+
 
     function voltarParaEndereco() {
         setStepVerification(false);
@@ -118,8 +206,18 @@ function FormDoador() {
     }
 
     function irParaVerificacao() {
-        setStepFormAndress(false);
+
+
+
         setStepVerification(true);
+        setStepFormAndress(false);
+
+    }
+
+
+    function enviarCodigo() {
+        setMsgCodigo(true)
+
     }
 
     async function enviarFormulario() {
@@ -135,7 +233,7 @@ function FormDoador() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formValues), // Converte o objeto formValues para JSON
-                
+
             });
 
             if (!response.ok) {
@@ -229,29 +327,30 @@ function FormDoador() {
                                         placeholder="Digite seu nome"
                                         name="name"
                                         type="text"
-                                        maxLength={61}
+                                        maxLength={30}
                                         value={formValues.name}
                                         onChange={handleChange}
                                     />
                                     <FormInput
                                         fluid
-                                        error={!!erros.nome && { content: erros.nome }}
+                                        error={!!erros.last_name && { content: erros.last_name }}
                                         label={<label className="blue-label">Sobrenome</label>}
                                         placeholder="Digite seu sobrenome"
                                         name="last_name"
                                         type="text"
-                                        maxLength={61}
-                                        value={formValues.nome}
+                                        maxLength={60}
+                                        value={formValues.last_name}
                                         onChange={handleChange}
                                     />
                                     <FormInput
                                         icon='phone'
                                         iconPosition='left'
                                         fluid
-                                        error={!!erros.telefone && { content: erros.telefone }}
+                                        error={!!erros.phone && { content: erros.phone }}
                                         label={<label className="blue-label">Telefone</label>}
                                         placeholder="Digite seu telefone"
                                         name="phone"
+                                        type="text"
                                         maxLength={16}
                                         value={formValues.phone}
                                         onChange={handleChange}
@@ -264,19 +363,18 @@ function FormDoador() {
                                         label={<label className="blue-label">E-mail</label>}
                                         placeholder="Digite seu e-mail"
                                         name="email"
-                                        maxLength={30}
+                                        maxLength={45}
                                         value={formValues.email}
                                         onChange={handleChange}
                                     />
-                                    <FormInput
-                                        icon='mail'
-                                        iconPosition='left'
+                                    <FormTextArea
                                         fluid
-                                        error={!!erros.email && { content: erros.email }}
+                                        error={!!erros.motivation && { content: erros.motivation }}
                                         label={<label className="blue-label">Motivação</label>}
-                                        placeholder="Digite seu e-mail"
+                                        placeholder="Descreva qual a sua motivação para realizar sua doação"
                                         name="motivation"
-                                        maxLength={30}
+                                        type="text"
+                                        maxLength={150}
                                         value={formValues.motivation}
                                         onChange={handleChange}
                                     />
@@ -284,8 +382,7 @@ function FormDoador() {
                             </Form>
                         </main>
 
-                        <footer className="wizard-footer">
-                            <Button type='submit' className="btn-internal-forms-back">nao faz nada</Button>
+                        <footer className="wizard-footer-contact">
                             <Button type='submit' className="btn-internal-forms-continous" onClick={irParaEndereco}>Continuar</Button>
                         </footer>
                     </div>
@@ -346,47 +443,49 @@ function FormDoador() {
                                     {/* Inputs dinâmicos de cada etapa */}
                                     <FormInput
                                         fluid
-                                        error={!!erros.cep && { content: erros.cep }}
+                                        error={!!(erros.address && erros.address.cep) && { content: erros.address.cep }}
                                         label={<label className="blue-label">CEP</label>}
                                         placeholder="Digite seu cep"
                                         name="cep"
                                         type="text"
-                                        maxLength={20}
-                                        value={formValues.nome}
-                                        onChange={handleChange}
-                                    />
+                                        maxLength={9}
+                                        value={formValues.address.cep}
+                                        onChange={(e) => updateCep(e.target.value)}  // Atualiza diretamente
+                                        />
+
                                     <FormGroup widths='equal'>
                                         <FormInput
                                             fluid
-                                            error={!!erros.rua && { content: erros.rua }}
+                                            error={!!(erros.address && erros.address.rua) && { content: erros.address.rua }}
+                                            // error={!!erros.address.rua && { content: erros.address.rua }}
                                             label={<label className="blue-label">Rua</label>}
                                             placeholder="Digite seu rua"
                                             name="rua"
                                             type="text"
-                                            maxLength={20}
-                                            value={formValues.nome}
+                                            maxLength={25}
+                                            value={formValues.rua}
                                             onChange={handleChange}
                                         />
                                         <FormInput
                                             fluid
-                                            error={!!erros.bairro && { content: erros.bairro }}
+                                            error={!!(erros.address && erros.address.bairro) && { content: erros.address.bairro }}
                                             label={<label className="blue-label">Bairro</label>}
                                             placeholder="Digite seu bairro"
                                             name="bairro"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.nome}
+                                            value={formValues.bairro}
                                             onChange={handleChange}
                                         />
                                         <FormInput
                                             fluid
-                                            error={!!erros.logradouro && { content: erros.logradouro }}
+                                            error={!!(erros.address && erros.address.logradouro) && { content: erros.address.logradouro }}
                                             label={<label className="blue-label">Logradouro</label>}
                                             placeholder="Digite seu logradouro"
                                             name="logradouro"
-                                            type="text"
+                                            type="number"
                                             maxLength={20}
-                                            value={formValues.nome}
+                                            value={formValues.logradouro}
                                             onChange={handleChange}
                                         />
 
@@ -394,18 +493,18 @@ function FormDoador() {
                                     <FormGroup widths='equal'>
                                         <FormInput
                                             fluid
-                                            error={!!erros.numero && { content: erros.numero }}
-                                            label={<label className="blue-label">numero</label>}
+                                            error={!!(erros.address && erros.address.numero) && { content: erros.address.numero }}
+                                            label={<label className="blue-label">Número</label>}
                                             placeholder="Digite seu numero"
                                             name="numero"
                                             type="text"
-                                            maxLength={20}
+                                            maxLength={6}
                                             value={formValues.numero}
                                             onChange={handleChange}
                                         />
                                         <FormInput
                                             fluid
-                                            error={!!erros.cidade && { content: erros.cidade }}
+                                            error={!!(erros.address && erros.address.cidade) && { content: erros.address.cidade }}
                                             label={<label className="blue-label">Cidade</label>}
                                             placeholder="Digite seu cidade"
                                             name="cidade"
@@ -416,17 +515,26 @@ function FormDoador() {
                                         />
                                         <FormInput
                                             fluid
-                                            error={!!erros.estado && { content: erros.estado }}
+                                            error={!!(erros.address && erros.address.estado) && { content: erros.address.estado }}
                                             label={<label className="blue-label">Estado</label>}
                                             placeholder="Digite seu estado"
                                             name="estado"
                                             type="text"
-                                            maxLength={20}
+                                            maxLength={15}
                                             value={formValues.estado}
                                             onChange={handleChange}
                                         />
-
                                     </FormGroup>
+                                    <FormTextArea
+                                        fluid
+                                        error={!!(erros.address && erros.address.pontoReferencia) && { content: erros.address.pontoReferencia }}
+                                        label={<label className="blue-label">Ponto de referência</label>}
+                                        placeholder="Descreva ponto de referência do seu endereço"
+                                        name="pontoReferencia"
+                                        maxLength={100}
+                                        value={formValues.pontoReferencia}
+                                        onChange={handleChange}
+                                    />
                                 </div>
                             </Form>
                         </main>
@@ -501,7 +609,21 @@ function FormDoador() {
                                         value={formValues.codigoVerificacao}
                                         onChange={handleChange}
                                     />
-                                    <button type="submit" onClick={enviarFormulario} >Enviar codigo</button>
+                                    {msgCodigo ? <p className="msg-codigo-verificacao">Um código de verificação foi enviado para o seu celular</p>
+                                        : null}
+                                    <button type="submit" className="btn-enviar-codigo" onClick={enviarCodigo} >Enviar código</button>
+                                    <div className="div-nao-recebeu-codigo">
+                                        <p>Não recebeu o código?</p>
+                                        <p className="reenviar-codigo">Clique aqui para reenviar</p>
+                                    </div>
+                                    <Checkbox
+                                        label={
+                                            <label>Ao aceitar, você concorda com os Termos de Uso e
+                                                Política de Privacidade do site</label>
+                                        }
+                                        defaultChecked
+                                    />
+
                                 </div>
                             </Form>
                         </main>

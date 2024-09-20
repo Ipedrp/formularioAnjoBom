@@ -1,31 +1,25 @@
-/* Centralizar o formulário na página */
 .wizard-form {
     display: flex;
     flex-direction: column;
     height: 750px;
     width: 600px;
     margin: auto;
-    /* Centraliza o formulário */
     background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    /* Adiciona um leve sombreamento */
-    border-radius: 8px;
-    /* Canto arredondado */
+    box-shadow: 0 0 10px rgba(221, 216, 216, 0.1);
+    border-radius: 9px;
+    border: 9px solid #135F99;
+
 }
 
-/* Estilos para o header */
 .wizard-header {
-    height: 100px;
+    height: 50px;
     text-align: center;
-    background-color: #f5f5f5;
-    padding: 20px;
-    border-bottom: 1px solid #ddd;
+    background-color: #ffffff;
+    padding: 40px;
 }
 
-/* Estilos para o main */
 .wizard-main {
     flex-grow: 1;
-    /* Permite que o main cresça para ocupar o espaço restante */
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -33,28 +27,26 @@
     background-color: #fff;
 }
 
-/* Estilos para o footer */
 .wizard-footer {
     height: 100px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #f5f5f5;
+    background-color: #ffffff;
     padding: 20px;
-    border-top: 1px solid #ddd;
+
 }
+    
 
-.form-input {
-    margin-bottom: 20px;
-    /* Define um espaçamento fixo */
+.wizard-footer-contact {
+    height: 100px;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 20px;
 }
-
-.form-input .ui.error.message {
-    margin-bottom: 5px;
-    /* Ajusta a distância entre o input e a mensagem de erro */
-}
-
-
+    
 
 .color-label-circle-active {
     background-color: #135F99 !important;
@@ -80,10 +72,6 @@
 .blue-label {
     color: #135F99 !important;
 }
-
-/* .ui.form .field {
-    margin-bottom: 0px !important;
-} */
 
 .buttons-internal-forms-contact {
     display: flex;
@@ -112,21 +100,31 @@
     flex-direction: column;
 }
 
-
-/*formulario verficacao*/
-.msg-codigo-verificacao {
+.msg-codigo-verificacao{
     color: brown;
-    margin: 0px !important;
 }
 
-.container-reenviar-codigo {
-    margin: 20px 0px;
+.btn-enviar-codigo{
+    border: none;
+    background-color: #135F99;
+    color: #fff;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+
+.div-nao-recebeu-codigo{
+    margin: 25px 0px;
+}
+.div-nao-recebeu-codigo p{
+    margin: 0px 0px;
+}
+
+.reenviar-codigo{
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.reenviar-codigo:hover{
     color: #135F99;
-}
-
-.container-aceitar-politica {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    margin: 20px 0px;
 }
