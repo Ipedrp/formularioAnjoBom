@@ -63,6 +63,8 @@ function FormDoador() {
                 case "nome":
                     if (value.length > 60) {
                         newErros.nome = "Nome deve ter no máximo 60 caracteres";
+                    } else if (value.length < 15) {
+                        newErros.nome = "Nome deve ter no mínimo 15 caracteres";
                     } else {
                         newErros.nome = "";
                     }
@@ -182,6 +184,7 @@ function FormDoador() {
                                         name="nome"
                                         type="text"
                                         maxLength={61}
+                                        minLength={15}
                                         value={formValues.nome}
                                         onChange={handleChange}
                                     />
@@ -281,7 +284,7 @@ function FormDoador() {
                                         name="cep"
                                         type="text"
                                         maxLength={20}
-                                        value={formValues.nome}
+                                        value={formValues.cep}
                                         onChange={handleChange}
                                     />
                                     <FormGroup widths='equal'>
@@ -293,7 +296,7 @@ function FormDoador() {
                                             name="rua"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.nome}
+                                            value={formValues.rua}
                                             onChange={handleChange}
                                         />
                                         <FormInput
@@ -304,7 +307,7 @@ function FormDoador() {
                                             name="bairro"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.nome}
+                                            value={formValues.bairro}
                                             onChange={handleChange}
                                         />
                                         <FormInput
@@ -315,7 +318,7 @@ function FormDoador() {
                                             name="logradouro"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.nome}
+                                            value={formValues.logradouro}
                                             onChange={handleChange}
                                         />
 
@@ -329,7 +332,7 @@ function FormDoador() {
                                             name="numero"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.numero}
+                                            value={formValues.n}
                                             onChange={handleChange}
                                         />
                                         <FormInput
