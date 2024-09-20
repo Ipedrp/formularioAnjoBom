@@ -38,9 +38,20 @@ function FormDoador() {
 
     // Estado para armazenar os valores dos inputs
     const [formValues, setFormValues] = useState({
-        nome: '',
-        telefone: '',
-        email: ''
+        name: '',
+        last_name: '',
+        email: '',
+        phone:'',
+        motivation:'',
+        address: {
+            cep: '',
+            estado: '',
+            cidade: '',
+            bairro: '',
+            rua: '',
+            numero: ''
+          },
+
     });
 
     const [todosDados, setTodosDados] = useState([])
@@ -63,8 +74,6 @@ function FormDoador() {
                 case "nome":
                     if (value.length > 60) {
                         newErros.nome = "Nome deve ter no máximo 60 caracteres";
-                    } else if (value.length < 15) {
-                        newErros.nome = "Nome deve ter no mínimo 15 caracteres";
                     } else {
                         newErros.nome = "";
                     }
@@ -113,12 +122,49 @@ function FormDoador() {
         setStepVerification(true);
     }
 
-    function enviarFormulario() {
-        console.log("Dados do formulário:", formValues); // Mostra os dados do formulário antes de atualizar
+    async function enviarFormulario() {
+        console.log("Dados do formulário:", formValues);
 
-        setTodosDados(prevTodosDados => [...prevTodosDados, formValues]); // Adiciona os novos dados ao array existente
+        setTodosDados(prevTodosDados => [...prevTodosDados, formValues]);
+
+        try {
+            // Envia os dados para o backend via POST
+            const response = await fetch('http://localhost:5000/person/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formValues), // Converte o objeto formValues para JSON
+                
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao enviar dados para o servidor');
+            }
+
+            const data = await response.json();
+            console.log('Resposta do servidor:', data);
+
+            // Caso você queira limpar o formulário após o envio
+            setFormValues({
+                name: '',
+                last_name: '',
+                email: '',
+                phone: '',
+                motivation: '',
+                address: {
+                    cep: '',
+                    estado: '',
+                    cidade: '',
+                    bairro: '',
+                    rua: '',
+                    numero: ''
+                }
+            });
+        } catch (error) {
+            console.error('Erro ao enviar os dados:', error);
+        }
     }
-
     const isMobile = useMediaQuery({ maxWidth: 767 });
 
     return (
@@ -178,13 +224,23 @@ function FormDoador() {
                                     {/* Inputs dinâmicos de cada etapa */}
                                     <FormInput
                                         fluid
-                                        error={!!erros.nome && { content: erros.nome }}
+                                        error={!!erros.name && { content: erros.name }}
                                         label={<label className="blue-label">Nome</label>}
                                         placeholder="Digite seu nome"
-                                        name="nome"
+                                        name="name"
                                         type="text"
                                         maxLength={61}
-                                        minLength={15}
+                                        value={formValues.name}
+                                        onChange={handleChange}
+                                    />
+                                    <FormInput
+                                        fluid
+                                        error={!!erros.nome && { content: erros.nome }}
+                                        label={<label className="blue-label">Sobrenome</label>}
+                                        placeholder="Digite seu sobrenome"
+                                        name="last_name"
+                                        type="text"
+                                        maxLength={61}
                                         value={formValues.nome}
                                         onChange={handleChange}
                                     />
@@ -195,9 +251,9 @@ function FormDoador() {
                                         error={!!erros.telefone && { content: erros.telefone }}
                                         label={<label className="blue-label">Telefone</label>}
                                         placeholder="Digite seu telefone"
-                                        name="telefone"
+                                        name="phone"
                                         maxLength={16}
-                                        value={formValues.telefone}
+                                        value={formValues.phone}
                                         onChange={handleChange}
                                     />
                                     <FormInput
@@ -210,6 +266,18 @@ function FormDoador() {
                                         name="email"
                                         maxLength={30}
                                         value={formValues.email}
+                                        onChange={handleChange}
+                                    />
+                                    <FormInput
+                                        icon='mail'
+                                        iconPosition='left'
+                                        fluid
+                                        error={!!erros.email && { content: erros.email }}
+                                        label={<label className="blue-label">Motivação</label>}
+                                        placeholder="Digite seu e-mail"
+                                        name="motivation"
+                                        maxLength={30}
+                                        value={formValues.motivation}
                                         onChange={handleChange}
                                     />
                                 </div>
@@ -284,7 +352,7 @@ function FormDoador() {
                                         name="cep"
                                         type="text"
                                         maxLength={20}
-                                        value={formValues.cep}
+                                        value={formValues.nome}
                                         onChange={handleChange}
                                     />
                                     <FormGroup widths='equal'>
@@ -296,7 +364,7 @@ function FormDoador() {
                                             name="rua"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.rua}
+                                            value={formValues.nome}
                                             onChange={handleChange}
                                         />
                                         <FormInput
@@ -307,7 +375,7 @@ function FormDoador() {
                                             name="bairro"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.bairro}
+                                            value={formValues.nome}
                                             onChange={handleChange}
                                         />
                                         <FormInput
@@ -318,7 +386,7 @@ function FormDoador() {
                                             name="logradouro"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.logradouro}
+                                            value={formValues.nome}
                                             onChange={handleChange}
                                         />
 
@@ -332,7 +400,7 @@ function FormDoador() {
                                             name="numero"
                                             type="text"
                                             maxLength={20}
-                                            value={formValues.n}
+                                            value={formValues.numero}
                                             onChange={handleChange}
                                         />
                                         <FormInput
@@ -359,14 +427,6 @@ function FormDoador() {
                                         />
 
                                     </FormGroup>
-
-                                    <FormTextArea
-                                        error={!!erros.pontoReferencia && { content: erros.pontoReferencia }}
-                                        label={<label className="blue-label">Ponto de referência</label>}
-                                        placeholder='Descreva ponto de conferência  do seu endereço'
-                                        value={formValues.pontoReferencia}
-                                        onChange={handleChange}
-                                    />
                                 </div>
                             </Form>
                         </main>
@@ -441,7 +501,7 @@ function FormDoador() {
                                         value={formValues.codigoVerificacao}
                                         onChange={handleChange}
                                     />
-                                    <p>Enviar código</p>
+                                    <button type="submit" onClick={enviarFormulario} >Enviar codigo</button>
                                 </div>
                             </Form>
                         </main>
